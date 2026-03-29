@@ -20,7 +20,7 @@ const PORTFOLIO_DATA = {
   experience: [
     {
       role: "Co-Founder & CTO",
-      org: "InsurTech BD",
+      org: "Lance",
       location: "Dhaka, Bangladesh",
       period: "Jan 2026 – Present",
       type: "startup",
