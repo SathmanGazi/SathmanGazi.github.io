@@ -20,7 +20,7 @@ const PORTFOLIO_DATA = {
   experience: [
     {
       role: "Lead Software Engineer",
-      org: "InsurTech BD",
+      org: "Lance",
       location: "Dhaka, Bangladesh",
       period: "Jan 2026 – Present",
       type: "industry",
@@ -68,7 +68,7 @@ const PORTFOLIO_DATA = {
   projects: [
     {
       name: "Claims Automation Platform",
-      subtitle: "InsurTech BD — Live Production System",
+      subtitle: "Lance — Live Production System",
       period: "2026 – Present",
       description: "Multi-tenant SaaS platform for insurance claims processing. Features JWT auth, Bengali/English bilingual support, surveyor dispatch, urgency classification, and an append-only audit trail against Bangladesh's national insurance data platform.",
       tags: ["FastAPI", "PostgreSQL", "Next.js", "TypeScript", "pytest-asyncio"],
