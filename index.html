@@ -176,6 +176,7 @@
 
   .tags { display: flex; flex-wrap: wrap; gap: 0.4rem; }
   .tag { font-size: 10px; letter-spacing: 0.08em; padding: 0.2rem 0.6rem; background: var(--surface-2); border: 1px solid var(--border); border-radius: 3px; color: var(--text-muted); font-weight: 500; }
+  .tag-private { background: transparent; border-color: var(--yellow); color: var(--yellow); text-transform: uppercase; }
 
   /* SKILLS */
   .skills-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
@@ -491,9 +492,12 @@
   const pc = document.getElementById('project-cards');
   d.projects.forEach((p, i) => {
     const githubBtn = (p.github && !p.github_private) ? `<a href="${p.github}" class="btn btn-ghost" style="font-size:11px;" target="_blank" onclick="event.stopPropagation()">[ github ]</a>` : '';
+    const privateBadge = p.github_private ? `<span class="tag tag-private">private</span>` : '';
+    const liveBtn = p.live_url ? `<a href="${p.live_url}" class="btn btn-ghost" style="font-size:11px;" target="_blank" onclick="event.stopPropagation()">[ live ]</a>` : '';
+    const footerBtns = [githubBtn, liveBtn].filter(Boolean).join(' ');
     pc.innerHTML += `
       <div class="card card-clickable" data-modal-type="project" data-modal-idx="${i}">
-        <div class="card-type type-project">// project</div>
+        <div class="card-type type-project">// project${privateBadge ? ` &nbsp; ${privateBadge}` : ''}</div>
         <div class="card-header">
           <div class="card-role">${p.name}</div>
           <div class="card-period">${p.period}</div>
@@ -501,7 +505,7 @@
         <div class="card-org">${p.subtitle}</div>
         <p class="card-desc">${p.description}</p>
         <div class="tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
-        ${githubBtn ? `<div style="margin-top:1rem;">${githubBtn}</div>` : ''}
+        ${footerBtns ? `<div style="margin-top:1rem;">${footerBtns}</div>` : ''}
         <div class="card-hint">[ + expand ]</div>
       </div>`;
   });
@@ -571,11 +575,16 @@
 
     const footer = document.getElementById('modal-footer');
     footer.innerHTML = '';
+    const parts = [];
     if (item.github && !item.github_private) {
-      footer.innerHTML = `<a href="${item.github}" class="btn btn-ghost" style="font-size:11px;" target="_blank">[ view on github ]</a>`;
+      parts.push(`<a href="${item.github}" class="btn btn-ghost" style="font-size:11px;" target="_blank">[ view on github ]</a>`);
     } else if (item.github && item.github_private) {
-      footer.innerHTML = `<span class="private-notice">sorry, this repository is private</span>`;
+      parts.push(`<span class="private-notice">sorry, this repository is private</span>`);
     }
+    if (item.live_url) {
+      parts.push(`<a href="${item.live_url}" class="btn btn-ghost" style="font-size:11px;" target="_blank">[ live site ]</a>`);
+    }
+    footer.innerHTML = parts.join(' &nbsp; ');
 
     modalOverlay.classList.add('active');
     document.body.style.overflow = 'hidden';

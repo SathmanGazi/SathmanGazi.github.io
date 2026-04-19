@@ -67,21 +67,51 @@ const PORTFOLIO_DATA = {
 
   projects: [
     {
-      name: "Claims Automation Platform",
-      subtitle: "Lance — Live Production System",
+      name: "InsurTech BD Platform",
+      subtitle: "Lance — B2B SaaS Claims Automation",
       period: "2026 – Present",
-      description: "Multi-tenant SaaS platform for insurance claims processing. Features JWT auth, Bengali/English bilingual support, surveyor dispatch, urgency classification, and an append-only audit trail against Bangladesh's national insurance data platform.",
-      tags: ["FastAPI", "PostgreSQL", "Next.js", "TypeScript", "pytest-asyncio"],
-      github: "", // TODO: add repo URL if public
+      description: "B2B SaaS platform for insurance claims workflow automation in Bangladesh. Built for licensed insurance companies to enforce IDRA's 90-day claims settlement mandate (Insurance Act 2010) with zero prior digital infrastructure.",
+      tags: ["Python", "FastAPI", "PostgreSQL", "SQLAlchemy", "Alembic", "Redis", "Celery", "AWS S3", "Next.js 14", "TypeScript", "Tailwind CSS", "Docker", "GitHub Actions"],
+      github: "https://github.com/insurtech-bd/platform",
+      github_private: true,
+      details: [
+        "Multi-tenant FastAPI backend with PostgreSQL, Redis/Celery, and AWS S3; every DB table scoped by tenant_id",
+        "Claim status state machine enforcing IDRA's 17-action Claims Management Guideline 2024 with immutable audit trail",
+        "Automated escalation alerts at 60/75/85-day thresholds; XBRL/JSON compliance reporting",
+        "IDRA UMP API integration for policy verification, e-KYC, and SMS notifications",
+        "CI/CD via GitHub Actions with PostgreSQL + Redis test containers; Next.js 14 frontend with Bengali i18n"
+      ]
+    },
+    {
+      name: "Smart Drone Traffic Analyzer",
+      subtitle: "Computer Vision Pipeline",
+      period: "2025",
+      description: "End-to-end computer vision pipeline for analyzing aerial/drone video footage — detects, tracks, and de-duplicates vehicle counts with an annotated output video and CSV/XLSX reports.",
+      tags: ["Python", "FastAPI", "YOLOv8", "ByteTrack", "OpenCV", "supervision", "pandas", "WebSockets", "Next.js 14", "TypeScript", "Tailwind CSS"],
+      github: "https://github.com/SathmanGazi/ants_smart_drone",
       github_private: false,
       details: [
-        "Multi-tenant architecture with full tenant isolation enforced at both database and API layer",
-        "JWT authentication with role-based access control for insurers, surveyors, and administrators",
-        "Full Bengali/English bilingual support across all UI flows and notification systems",
-        "Claims state machine with surveyor dispatch, urgency classification, and 90-day deadline tracking",
-        "Append-only audit trail for regulatory compliance against Bangladesh's national insurance data platform",
-        "23/23 pytest-asyncio critical path tests covering tenant isolation, API integration, urgency band logic, and status transitions",
-        "GitHub Actions CI/CD pipeline with automated test gates on every push"
+        "YOLOv8 + ByteTrack pipeline with custom de-duplication logic (confirmation threshold, displacement gate, soft re-ID fallback, majority-vote class assignment)",
+        "Real-time WebSocket progress streaming from FastAPI background task to Next.js frontend",
+        "Generates annotated MP4 (H.264 via ffmpeg), result JSON, CSV, and XLSX reports per job",
+        "Stateless, interface-driven architecture with deliberate seams for Redis/Celery/S3 swap-in"
+      ]
+    },
+    {
+      name: "Fin — Office Accounting ERP",
+      subtitle: "MERN-Stack ERP & Payroll System",
+      period: "2025",
+      description: "MERN-stack office accounting and light ERP system with role-based access, multi-step expense approval workflows, client ledgers, asset/vehicle registers, real-time notifications, and HR/payroll module.",
+      tags: ["Node.js", "Express", "MongoDB", "Mongoose", "React 18", "Tailwind CSS", "Socket.io", "JWT", "Recharts", "Cloudflare Pages", "Render"],
+      github: "https://github.com/insurtech-bd/fin-accounting",
+      github_private: true,
+      live_url: "https://fin-accounting.pages.dev",
+      details: [
+        "Role-based access control (Admin / Director / Accounts / Employee) with JWT auth",
+        "Full expense lifecycle: submit → approve/reject → mark paid with FIN reference numbers",
+        "Real-time Socket.io notifications; client debit/credit ledger with dues tracking",
+        "HR & Payroll module: monthly cash payroll, advance/loan tracking, employee payslip printing",
+        "Deployed on Cloudflare Pages (frontend) + Render (backend) + MongoDB Atlas with business-hours keepalive"
       ]
     },
     {
