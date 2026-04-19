@@ -121,7 +121,7 @@ const PORTFOLIO_DATA = {
       description: "TensorFlow-based document classification system achieving 98% F1 score. Built end-to-end: data preprocessing, model architecture, feature engineering, hyperparameter tuning, and systematic error analysis.",
       tags: ["TensorFlow", "Python", "scikit-learn", "ML Evaluation"],
       github: "https://github.com/SathmanGazi/JPMorgan-2",
-      github_private: false,
+      github_private: true,
       details: [
         "Built and evaluated a TensorFlow-based medical document classification system in partnership with JP Morgan for USF senior capstone",
         "Achieved 98% F1 score on validation data through systematic feature engineering and hyperparameter tuning",
