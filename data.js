@@ -83,6 +83,23 @@ const PORTFOLIO_DATA = {
       ]
     },
     {
+      name: "Lance Wallet",
+      subtitle: "Personal Finance App for Bangladesh — Hi-Fi Prototype",
+      period: "2026",
+      description: "A personal finance + wallet app for Bangladesh with a premium editorial feel (jade/forest accent, Cormorant Garamond + Geist). Shipped as a 17-screen hi-fi interactive prototype in HTML/React, designed for a React Native + Expo production build.",
+      tags: ["HTML", "React", "React Native", "Expo", "Supabase", "TypeScript", "Zustand", "i18n (en/bn)"],
+      github: "https://github.com/insurtech-bd/lance-wallet",
+      github_private: true,
+      live_url: "./assets/lance-wallet/",
+      details: [
+        "17-screen interactive hi-fi prototype (splash, onboarding, auth + OTP, home, transactions, analytics, budgets, bills, accounts, goals, profile) built in HTML/React as the visual source of truth",
+        "Editorial design system with design tokens, 5 switchable ink presets (Forest/Graphite/Midnight/Espresso/Indigo), 4pt spacing grid, and a Cormorant Garamond + Geist + Geist Mono type scale",
+        "Bangladesh-first UX: +880 phone auth, ৳ BDT formatting with lakh/crore grouping via Intl.NumberFormat('bn-BD'), Bangla (bn) localization stubs, and seeded accounts for Cash/bKash/Nagad/Rocket/Bank",
+        "Custom numeric keypad for add-transaction flow (no system keyboard) — the premium interaction detail of the app",
+        "Production stack planned on 100% free tiers: Expo (EAS), Supabase Auth/Postgres/Storage, Expo Push, PostHog, Sentry — ship to Play Store beta from MVP screens 1–5, rest via Expo OTA"
+      ]
+    },
+    {
       name: "Smart Drone Traffic Analyzer",
       subtitle: "Computer Vision Pipeline",
       period: "2025",

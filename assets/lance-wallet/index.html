@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Lance Wallet — Android app design</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; background:#E8E2D3; font-family: "Geist", system-ui, sans-serif; color:#0E1411; }
+  button { font-family: inherit; }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+  @keyframes blink { 0%,100% { opacity:1 } 50% { opacity:0 } }
+  @keyframes fadeIn { from { opacity:0; transform: translateY(6px) } to { opacity:1; transform:none } }
+  .fade-in { animation: fadeIn 0.35s ease-out; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="lib/lance-ui.jsx"></script>
+<script type="text/babel" src="lib/lance-screens-1.jsx"></script>
+<script type="text/babel" src="lib/lance-screens-2.jsx"></script>
+<script type="text/babel" src="lib/lance-screens-3.jsx"></script>
+<script type="text/babel" src="lib/lance-screens-4.jsx"></script>
+<script type="text/babel" src="lib/lance-screens-5.jsx"></script>
+
+<script type="text/babel">
+  // Tweakable defaults (host can rewrite between markers)
+  const TWEAKS = /*EDITMODE-BEGIN*/{
+    "ink": "forest",
+    "platform": "android",
+    "language": "en",
+    "showLabels": true
+  }/*EDITMODE-END*/;
+
+  // Apply ink preset to global T token before anything renders
+  function applyInk(name) {
+    const p = INK_PRESETS[name] || INK_PRESETS.graphite;
+    T.ink = p.ink;
+    T.inkSoft = p.inkSoft;
+  }
+  applyInk(TWEAKS.ink);
+  setLang(TWEAKS.language);
+
+  const SCREENS = [
+    // Onboarding & auth flow
+    { id:'splash',         group:'Launch',  label:'01 Splash',           render:(p)=><ScreenSplash {...p}/> },
+    { id:'onboarding-0',   group:'Launch',  label:'02 Onboarding · Clarity',   render:(p)=><ScreenOnboarding step={0} {...p}/> },
+    { id:'onboarding-1',   group:'Launch',  label:'03 Onboarding · Wallets',   render:(p)=><ScreenOnboarding step={1} {...p}/> },
+    { id:'onboarding-2',   group:'Launch',  label:'04 Onboarding · Reminders', render:(p)=><ScreenOnboarding step={2} {...p}/> },
+    { id:'auth-login',     group:'Auth',    label:'05 Sign in',          render:(p)=><ScreenLogin {...p}/> },
+    { id:'auth-signup',    group:'Auth',    label:'06 Sign up',          render:(p)=><ScreenSignup {...p}/> },
+    { id:'auth-otp',       group:'Auth',    label:'07 OTP verify',       render:(p)=><ScreenOTP {...p}/> },
+    { id:'auth-forgot',    group:'Auth',    label:'08 Forgot password', render:(p)=><ScreenForgot {...p}/> },
+
+    // Core app (wrapped with bottom nav)
+    { id:'home',           group:'Core',    label:'09 Home dashboard',  hasNav: true, activeNav:'home',      render:(p)=><ScreenHome {...p}/> },
+    { id:'transactions',   group:'Core',    label:'10 Transactions',    hasNav: true, activeNav:'tx',        render:(p)=><ScreenTransactions {...p}/> },
+    { id:'add-tx',         group:'Core',    label:'11 Add transaction', render:(p)=><ScreenAddTx {...p}/> },
+    { id:'analytics',      group:'Core',    label:'12 Analytics',       hasNav: true, activeNav:'analytics', render:(p)=><ScreenAnalytics {...p}/> },
+    { id:'budgets',        group:'Core',    label:'13 Budgets',         render:(p)=><ScreenBudgets {...p}/> },
+    { id:'bills',          group:'Core',    label:'14 Bills',           render:(p)=><ScreenBills {...p}/> },
+    { id:'accounts',       group:'Core',    label:'15 Accounts',        render:(p)=><ScreenAccounts {...p}/> },
+    { id:'goals',          group:'Core',    label:'16 Savings goals',   render:(p)=><ScreenGoals {...p}/> },
+    { id:'profile',        group:'Core',    label:'17 Profile',         hasNav: true, activeNav:'profile',   render:(p)=><ScreenProfile {...p}/> },
+
+    // Design system
+    { id:'design-system',  group:'System',  label:'00 Design system',   render:(p)=><ScreenDesignSystem {...p}/> },
+  ];
+
+  const ORDERED_IDS = ['design-system',
+    'splash','onboarding-0','onboarding-1','onboarding-2',
+    'auth-login','auth-signup','auth-otp','auth-forgot',
+    'home','transactions','add-tx','analytics','budgets','bills','accounts','goals','profile'];
+
+  function Scene({ screen, onNav, showLabels, platform }) {
+    const content = screen.render({ onNav });
+    return (
+      <Phone label={showLabels ? screen.label : null} platform={platform}>
+        <div style={{ width:'100%', height:'100%', position:'relative' }} className="fade-in" key={screen.id}>
+          {content}
+          {screen.hasNav && <BottomNav active={screen.activeNav} onNav={(id)=>{
+            const map = { home:'home', tx:'transactions', add:'add-tx', analytics:'analytics', profile:'profile' };
+            if (map[id]) onNav(map[id]);
+          }}/>}
+        </div>
+      </Phone>
+    );
+  }
+
+  function GroupHeader({ name, count }) {
+    return (
+      <div style={{
+        gridColumn:'1 / -1',
+        display:'flex', alignItems:'baseline', gap: 14,
+        margin: '16px 0 8px',
+      }}>
+        <div style={{ fontFamily: FONT_DISPLAY, fontSize: 28, fontWeight: 500, color: T.ink, fontStyle:'italic', letterSpacing: -0.3 }}>
+          {name}
+        </div>
+        <div style={{ flex: 1, height: 1, background: 'rgba(14,20,17,0.1)' }}/>
+        <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: 1.5, textTransform:'uppercase', color: T.mute }}>
+          {count} {count===1?'screen':'screens'}
+        </div>
+      </div>
+    );
+  }
+
+  function App() {
+    const [mode, setMode] = React.useState(() => localStorage.getItem('lance.mode') || 'canvas');
+    const [focusId, setFocusId] = React.useState(() => localStorage.getItem('lance.focus') || 'home');
+    const [showLabels, setShowLabels] = React.useState(true);
+    const [tweakOpen, setTweakOpen] = React.useState(false);
+    const [ink, setInkState] = React.useState(TWEAKS.ink);
+    const [platform, setPlatform] = React.useState(TWEAKS.platform);
+    const [language, setLanguage] = React.useState(TWEAKS.language);
+    const [, forceRender] = React.useReducer(x=>x+1, 0);
+
+    const updateInk = (k) => { applyInk(k); setInkState(k); forceRender(); persistTweak('ink', k); };
+    const updateLang = (l) => { setLang(l); setLanguage(l); forceRender(); persistTweak('language', l); };
+    const updatePlatform = (p) => { setPlatform(p); persistTweak('platform', p); };
+    function persistTweak(key, val) {
+      window.parent.postMessage({ type: '__edit_mode_set_keys', edits: { [key]: val } }, '*');
+    }
+
+    React.useEffect(()=>{ localStorage.setItem('lance.mode', mode); }, [mode]);
+    React.useEffect(()=>{ localStorage.setItem('lance.focus', focusId); }, [focusId]);
+
+    const go = (id) => {
+      setFocusId(id);
+      if (mode !== 'focus') setMode('focus');
+    };
+
+    const focused = SCREENS.find(s => s.id === focusId) || SCREENS[0];
+
+    // Group screens
+    const groups = {};
+    for (const id of ORDERED_IDS) {
+      const s = SCREENS.find(x => x.id === id);
+      if (!s) continue;
+      if (!groups[s.group]) groups[s.group] = [];
+      groups[s.group].push(s);
+    }
+
+    // Edit-mode protocol
+    React.useEffect(() => {
+      const onMsg = (e) => {
+        if (e.data?.type === '__activate_edit_mode') setTweakOpen(true);
+        if (e.data?.type === '__deactivate_edit_mode') setTweakOpen(false);
+      };
+      window.addEventListener('message', onMsg);
+      window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+      return () => window.removeEventListener('message', onMsg);
+    }, []);
+
+    return (
+      <div style={{ minHeight:'100vh', background: T.ivoryDeep, position:'relative' }}>
+        {/* Top bar */}
+        <div style={{
+          position:'sticky', top: 0, zIndex: 10,
+          background: 'rgba(232,226,211,0.88)',
+          backdropFilter: 'blur(10px)',
+          borderBottom: `1px solid ${T.line}`,
+          padding: '14px 28px', display:'flex', alignItems:'center', gap: 16,
+        }}>
+          <div style={{ display:'flex', alignItems:'center', gap: 10 }}>
+            <LanceMark size={22}/>
+            <div>
+              <LanceWordmark size={13}/>
+              <div style={{ fontFamily: FONT_UI, fontSize: 10, fontWeight: 500, letterSpacing: 2.5, color: T.mute, marginTop: 2 }}>
+                WALLET · ANDROID · MVP
+              </div>
+            </div>
+          </div>
+          <div style={{ flex: 1 }}/>
+          <div style={{ display:'flex', background: T.paper, border:`1px solid ${T.line}`, borderRadius: T.r.pill, padding: 3 }}>
+            {[
+              { id:'canvas', l:'All screens' },
+              { id:'focus',  l:'Focus' },
+            ].map(o => (
+              <button key={o.id} onClick={()=>setMode(o.id)} style={{
+                padding:'7px 16px', border:'none',
+                background: mode===o.id ? T.ink : 'transparent',
+                color: mode===o.id ? T.ivory : T.ink,
+                borderRadius: T.r.pill, fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, cursor:'pointer',
+              }}>{o.l}</button>
+            ))}
+          </div>
+        </div>
+
+        {/* Canvas mode */}
+        {mode === 'canvas' && (
+          <div style={{ padding: '28px 28px 80px', maxWidth: 1800, margin: '0 auto' }}>
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontFamily: FONT_DISPLAY, fontSize: 52, fontWeight: 500, color: T.ink, letterSpacing: -1, lineHeight: 1 }}>
+                Lance Wallet.
+              </div>
+              <div style={{ fontFamily: FONT_DISPLAY, fontSize: 22, fontStyle:'italic', color: T.mute, marginTop: 8 }}>
+                A premium personal-finance app for Bangladesh — MVP design system + 17 screens.
+              </div>
+              <div style={{ display:'flex', gap: 8, marginTop: 16, flexWrap:'wrap' }}>
+                <Chip tone="ink">ANDROID · MATERIAL-AWARE</Chip>
+                <Chip>BDT · ৳</Chip>
+                <Chip tone="jade">TAP ANY SCREEN TO INTERACT</Chip>
+                <Chip tone="ghost">17 SCREENS</Chip>
+              </div>
+            </div>
+
+            {Object.entries(groups).map(([gname, items]) => (
+              <div key={gname} style={{ marginBottom: 12 }}>
+                <GroupHeader name={gname} count={items.length}/>
+                <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill, minmax(400px, 1fr))', gap: 32, justifyItems:'center', paddingTop: 12 }}>
+                  {items.map(s => (
+                    <div key={s.id} onClick={()=>go(s.id)} style={{ cursor:'pointer' }}>
+                      <Scene screen={s} onNav={go} showLabels={true} platform={platform}/>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Focus mode */}
+        {mode === 'focus' && (
+          <div style={{ display:'flex', minHeight: 'calc(100vh - 70px)' }}>
+            {/* Side nav */}
+            <div style={{
+              width: 260, flexShrink: 0, background: T.paper,
+              borderRight: `1px solid ${T.line}`,
+              padding: '20px 14px', overflow:'auto',
+              maxHeight: 'calc(100vh - 70px)',
+            }}>
+              {Object.entries(groups).map(([gname, items]) => (
+                <div key={gname} style={{ marginBottom: 18 }}>
+                  <div style={{ fontFamily: FONT_UI, fontSize: 10, fontWeight: 700, letterSpacing: 2, color: T.mute, padding: '0 10px 6px' }}>
+                    {gname.toUpperCase()}
+                  </div>
+                  {items.map(s => (
+                    <button key={s.id} onClick={()=>setFocusId(s.id)} style={{
+                      display:'block', width:'100%', textAlign:'left',
+                      padding: '8px 10px', borderRadius: 8,
+                      background: focusId===s.id ? T.ink : 'transparent',
+                      color: focusId===s.id ? T.ivory : T.ink,
+                      border:'none', cursor:'pointer',
+                      fontFamily: FONT_UI, fontSize: 12, fontWeight: 500,
+                      marginBottom: 2,
+                    }}>
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              ))}
+            </div>
+            {/* Stage */}
+            <div style={{ flex: 1, display:'flex', alignItems:'center', justifyContent:'center', padding: 40, overflow:'auto' }}>
+              <Scene screen={focused} onNav={go} showLabels={showLabels} platform={platform}/>
+            </div>
+            {/* Right info panel */}
+            <div style={{
+              width: 280, flexShrink: 0, background: T.paper,
+              borderLeft: `1px solid ${T.line}`, padding: '24px 20px',
+              maxHeight: 'calc(100vh - 70px)', overflow:'auto',
+            }}>
+              <div style={{ fontFamily: FONT_UI, fontSize: 10, fontWeight: 700, letterSpacing: 2, color: T.mute }}>
+                NOW VIEWING
+              </div>
+              <div style={{ fontFamily: FONT_DISPLAY, fontSize: 24, fontWeight: 500, color: T.ink, marginTop: 6, lineHeight: 1.1 }}>
+                {focused.label.replace(/^\d+\s+/,'')}
+              </div>
+              <div style={{ height: 1, background: T.lineSoft, margin: '18px 0' }}/>
+
+              <div style={{ fontFamily: FONT_UI, fontSize: 12, color: T.mute, lineHeight: 1.6 }}>
+                {SCREEN_NOTES[focused.id] || "Part of the Lance Wallet MVP. Tap through the prototype to explore related flows."}
+              </div>
+
+              <div style={{ fontFamily: FONT_UI, fontSize: 10, fontWeight: 700, letterSpacing: 2, color: T.mute, marginTop: 24 }}>
+                JUMP TO
+              </div>
+              <div style={{ display:'flex', flexDirection:'column', gap: 6, marginTop: 10 }}>
+                {(SCREEN_LINKS[focused.id] || []).map(id => {
+                  const s = SCREENS.find(x => x.id === id);
+                  if (!s) return null;
+                  return (
+                    <button key={id} onClick={()=>setFocusId(id)} style={{
+                      textAlign:'left', padding: '8px 10px', borderRadius: 8,
+                      background: T.ivory, border:`1px solid ${T.line}`, cursor:'pointer',
+                      fontFamily: FONT_UI, fontSize: 12, fontWeight: 500, color: T.ink,
+                      display:'flex', justifyContent:'space-between', alignItems:'center',
+                    }}>
+                      {s.label.replace(/^\d+\s+/,'')}
+                      {Icon.arrowRight(14, T.mute)}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Tweaks panel */}
+        {tweakOpen && (
+          <div style={{
+            position:'fixed', bottom: 20, right: 20, width: 280,
+            background: T.paper, border: `1px solid ${T.line}`,
+            borderRadius: T.r.lg, padding: 18, zIndex: 100,
+            boxShadow: '0 20px 60px -20px rgba(14,20,17,0.3)',
+          }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom: 14 }}>
+              <div style={{ fontFamily: FONT_DISPLAY, fontSize: 20, fontWeight: 500, color: T.ink }}>Tweaks</div>
+              <button onClick={()=>setTweakOpen(false)} style={{ background:'none', border:'none', cursor:'pointer' }}>{Icon.close(16, T.mute)}</button>
+            </div>
+            <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: 1.5, color: T.mute, marginBottom: 6 }}>PLATFORM</div>
+            <div style={{ display:'flex', background: T.ivory, border:`1px solid ${T.line}`, borderRadius: T.r.pill, padding: 3, marginBottom: 14 }}>
+              {[{id:'android',l:'Android'},{id:'ios',l:'iOS'}].map(o => (
+                <button key={o.id} onClick={()=>updatePlatform(o.id)} style={{
+                  flex:1, padding:'6px 0', border:'none',
+                  background: platform===o.id?T.ink:'transparent', color: platform===o.id?T.ivory:T.ink,
+                  borderRadius: T.r.pill, fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, cursor:'pointer',
+                }}>{o.l}</button>
+              ))}
+            </div>
+
+            <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: 1.5, color: T.mute, marginBottom: 6 }}>LANGUAGE</div>
+            <div style={{ display:'flex', background: T.ivory, border:`1px solid ${T.line}`, borderRadius: T.r.pill, padding: 3, marginBottom: 14 }}>
+              {[{id:'en',l:'English'},{id:'bn',l:'বাংলা'}].map(o => (
+                <button key={o.id} onClick={()=>updateLang(o.id)} style={{
+                  flex:1, padding:'6px 0', border:'none',
+                  background: language===o.id?T.ink:'transparent', color: language===o.id?T.ivory:T.ink,
+                  borderRadius: T.r.pill, fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, cursor:'pointer',
+                }}>{o.l}</button>
+              ))}
+            </div>
+
+            <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: 1.5, color: T.mute, marginBottom: 6 }}>INK COLOR</div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(5, 1fr)', gap: 6, marginBottom: 14 }}>
+              {Object.entries(INK_PRESETS).map(([k,v]) => (
+                <button key={k} onClick={()=>updateInk(k)} title={v.label} style={{
+                  aspectRatio:'1/1', borderRadius: 8, background: v.ink,
+                  border: ink===k ? `2px solid ${T.jade}` : `1px solid ${T.line}`,
+                  cursor:'pointer', padding: 0,
+                }}/>
+              ))}
+            </div>
+
+            <div style={{ fontFamily: FONT_UI, fontSize: 11, fontWeight: 600, letterSpacing: 1.5, color: T.mute, marginBottom: 6 }}>VIEW</div>
+            <div style={{ display:'flex', background: T.ivory, border:`1px solid ${T.line}`, borderRadius: T.r.pill, padding: 3, marginBottom: 14 }}>
+              {[{id:'canvas',l:'Canvas'},{id:'focus',l:'Focus'}].map(o => (
+                <button key={o.id} onClick={()=>setMode(o.id)} style={{
+                  flex:1, padding:'6px 0', border:'none',
+                  background: mode===o.id?T.ink:'transparent', color: mode===o.id?T.ivory:T.ink,
+                  borderRadius: T.r.pill, fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, cursor:'pointer',
+                }}>{o.l}</button>
+              ))}
+            </div>
+            <button onClick={()=>setShowLabels(x=>!x)} style={{
+              width:'100%', padding:'10px', border:`1px solid ${T.line}`,
+              borderRadius: T.r.md, background: showLabels?T.ink:T.ivory,
+              color: showLabels?T.ivory:T.ink, fontFamily: FONT_UI, fontSize: 12, fontWeight: 600, cursor:'pointer',
+            }}>{showLabels?'Labels ON':'Labels OFF'}</button>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Screen notes (shown in Focus mode side panel)
+  const SCREEN_NOTES = {
+    'design-system': 'The foundation. Warm-neutral palette (Paper, Ivory, Graphite) with a single jade accent. Serif display for money — so numbers feel considered, not shouty. Geist for UI runs clean at any size.',
+    'splash': 'A quiet first impression. Wordmark locks up with the Lance spear on graphite. Tagline: "Clarity for every taka."',
+    'onboarding-0': 'Value prop #1 — clarity. A stylized breakdown preview shows the app\'s core promise: see every category at a glance.',
+    'onboarding-1': 'Value prop #2 — consolidation. Card stack visually represents Cash, Bank, bKash unified in one view.',
+    'onboarding-2': 'Value prop #3 — reminders. Stacked bill cards preview the gentle alerts that keep users ahead of due dates.',
+    'auth-login': 'Phone-first (Bangladesh context). Flag prefix +880. Password + Google as alternate. Forgot-password link is tertiary.',
+    'auth-signup': 'Minimal 3-field signup: name, phone, password. Trust nudge panel below reinforces privacy.',
+    'auth-otp': '6-digit SMS verification with a numeric pad below for fast one-handed entry.',
+    'auth-forgot': 'Phone-based reset. Secondary path (email support) for edge cases.',
+    'home': 'The daily ritual screen. Balance, quick actions, account carousel, next bill, top goal, recent activity — in order of glanceability.',
+    'transactions': 'Searchable, filterable history grouped by day. Small summary row (income / expense / net) keeps the month in context.',
+    'add-tx': 'One-handed entry: type segmented at top, big amount display, inline category + account pickers, custom keypad at the bottom.',
+    'analytics': 'Monthly overview with 6-month trend, plain-English insights ("Dining is down 32%"), category breakdown, and weekday pattern.',
+    'budgets': 'Monthly category budgets. Calm color system: jade (on track), sand (tight), rose (over). "Days left" reinforces pacing.',
+    'bills': 'Upcoming-first list with auto-pay chips. Urgent banner surfaces anything due within 24h. Paid items recede in weight.',
+    'accounts': 'Unified balance header + richly-colored per-account rows. Supports bKash, Nagad, Rocket, banks, and cash.',
+    'goals': 'Aggregate savings header with segmented progress, followed by individual goals using rings. Simple "+ Add" for contribution.',
+    'profile': 'Tasteful identity block, three key stats, grouped settings. Language row is marked "বাংলা soon" to signal localization readiness.',
+  };
+
+  const SCREEN_LINKS = {
+    'splash': ['onboarding-0','auth-login'],
+    'onboarding-0': ['onboarding-1','onboarding-2','auth-login'],
+    'onboarding-1': ['onboarding-0','onboarding-2','auth-login'],
+    'onboarding-2': ['onboarding-1','auth-login'],
+    'auth-login': ['auth-signup','auth-forgot','home'],
+    'auth-signup': ['auth-otp','auth-login'],
+    'auth-otp': ['home','auth-signup'],
+    'auth-forgot': ['auth-otp','auth-login'],
+    'home': ['transactions','add-tx','analytics','bills','goals','accounts','profile'],
+    'transactions': ['home','add-tx','analytics'],
+    'add-tx': ['home','transactions'],
+    'analytics': ['budgets','transactions','home'],
+    'budgets': ['analytics','transactions','home'],
+    'bills': ['home','accounts'],
+    'accounts': ['home','bills','transactions'],
+    'goals': ['home','accounts'],
+    'profile': ['home','accounts'],
+    'design-system': ['home','splash','add-tx'],
+  };
+
+  const root = ReactDOM.createRoot(document.getElementById('root'));
+  root.render(<App/>);
+</script>
+</body>
+</html>

@@ -313,9 +313,98 @@
   }
   .private-notice::before { content: '⊘'; color: var(--yellow); font-size: 12px; }
 
+  /* Screenshots — thumbnail grid in modal */
+  .modal-shots { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 0.5rem; margin-bottom: 1.25rem; }
+  .modal-shots:empty { display: none; }
+  .shot-thumb {
+    position: relative;
+    aspect-ratio: 9 / 16;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .shot-thumb:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .shot-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .shot-thumb .shot-caption {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    font-family: var(--mono);
+    font-size: 9px;
+    letter-spacing: 0.05em;
+    color: var(--text-bright);
+    background: linear-gradient(transparent, rgba(0,0,0,0.75));
+    padding: 1rem 0.5rem 0.4rem;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .shot-thumb:hover .shot-caption { opacity: 1; }
+
+  /* Card hint: "N screenshots" */
+  .shots-hint { font-family: var(--mono); font-size: 10px; letter-spacing: 0.05em; color: var(--text-muted); margin-top: 0.4rem; }
+  .shots-hint::before { content: '▸ '; color: var(--accent); }
+
+  /* Lightbox */
+  .lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.92);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+  }
+  .lightbox.active { display: flex; }
+  .lightbox-stage { max-width: 100%; max-height: 100%; display: flex; flex-direction: column; align-items: center; gap: 0.75rem; }
+  .lightbox-img { max-width: 92vw; max-height: 82vh; object-fit: contain; border-radius: 6px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
+  .lightbox-caption { font-family: var(--mono); font-size: 12px; color: var(--text); letter-spacing: 0.03em; }
+  .lightbox-counter { font-family: var(--mono); font-size: 10px; color: var(--text-muted); letter-spacing: 0.1em; }
+  .lightbox-close {
+    position: absolute;
+    top: 1.2rem; right: 1.2rem;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 0.3rem 0.7rem;
+    border-radius: 3px;
+    cursor: pointer;
+    letter-spacing: 0.05em;
+    z-index: 2;
+  }
+  .lightbox-close:hover { border-color: var(--accent); color: var(--accent); }
+  .lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(20, 20, 20, 0.6);
+    border: 1px solid var(--border);
+    color: var(--text-bright);
+    font-size: 20px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    z-index: 2;
+  }
+  .lightbox-nav:hover { border-color: var(--accent); color: var(--accent); background: rgba(0, 229, 176, 0.08); }
+  .lightbox-prev { left: 1.2rem; }
+  .lightbox-next { right: 1.2rem; }
+
   @media (max-width: 600px) {
     .modal-box { padding: 1.5rem 1.25rem; max-height: 90vh; }
     .modal-overlay { padding: 1rem; }
+    .modal-shots { grid-template-columns: repeat(auto-fill, minmax(90px, 1fr)); }
+    .lightbox-nav { width: 38px; height: 38px; font-size: 16px; }
+    .lightbox-prev { left: 0.5rem; }
+    .lightbox-next { right: 0.5rem; }
   }
 </style>
 </head>
@@ -424,8 +513,21 @@
     <div class="modal-sub" id="modal-sub"></div>
     <div class="modal-divider"></div>
     <ul class="modal-bullets" id="modal-bullets"></ul>
+    <div class="modal-shots" id="modal-shots"></div>
     <div class="modal-tags" id="modal-tags"></div>
     <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightbox-close" aria-label="close">[ esc ]</button>
+  <button class="lightbox-nav lightbox-prev" id="lightbox-prev" aria-label="previous">&larr;</button>
+  <button class="lightbox-nav lightbox-next" id="lightbox-next" aria-label="next">&rarr;</button>
+  <div class="lightbox-stage">
+    <img class="lightbox-img" id="lightbox-img" alt="" />
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+    <div class="lightbox-counter" id="lightbox-counter"></div>
   </div>
 </div>
 
@@ -495,6 +597,8 @@
     const privateBadge = p.github_private ? `<span class="tag tag-private">private</span>` : '';
     const liveBtn = p.live_url ? `<a href="${p.live_url}" class="btn btn-ghost" style="font-size:11px;" target="_blank" onclick="event.stopPropagation()">[ live ]</a>` : '';
     const footerBtns = [githubBtn, liveBtn].filter(Boolean).join(' ');
+    const shotCount = (p.screenshots || []).length;
+    const shotsHint = shotCount ? `<div class="shots-hint">${shotCount} screenshot${shotCount === 1 ? '' : 's'}</div>` : '';
     pc.innerHTML += `
       <div class="card card-clickable" data-modal-type="project" data-modal-idx="${i}">
         <div class="card-type type-project">// project${privateBadge ? ` &nbsp; ${privateBadge}` : ''}</div>
@@ -505,6 +609,7 @@
         <div class="card-org">${p.subtitle}</div>
         <p class="card-desc">${p.description}</p>
         <div class="tags">${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        ${shotsHint}
         ${footerBtns ? `<div style="margin-top:1rem;">${footerBtns}</div>` : ''}
         <div class="card-hint">[ + expand ]</div>
       </div>`;
@@ -553,6 +658,8 @@
   // Modal logic
   const modalOverlay = document.getElementById('modal-overlay');
   const modalClose  = document.getElementById('modal-close');
+  let currentShots = [];
+  let currentShotIdx = 0;
 
   function openModal(type, idx) {
     const item = type === 'experience' ? d.experience[idx] : d.projects[idx];
@@ -569,6 +676,14 @@
 
     document.getElementById('modal-bullets').innerHTML =
       (item.details || []).map(b => `<li>${b}</li>`).join('');
+
+    const shots = (item.screenshots || []).map(s => typeof s === 'string' ? { src: s, caption: '' } : s);
+    document.getElementById('modal-shots').innerHTML = shots.map((s, si) => `
+      <div class="shot-thumb" data-shot-idx="${si}">
+        <img src="${s.src}" alt="${s.caption || ''}" loading="lazy" />
+        ${s.caption ? `<div class="shot-caption">${s.caption}</div>` : ''}
+      </div>`).join('');
+    currentShots = shots;
 
     document.getElementById('modal-tags').innerHTML =
       (item.tags || []).map(t => `<span class="tag">${t}</span>`).join('');
@@ -599,11 +714,60 @@
   modalOverlay.addEventListener('click', function(e) {
     if (e.target === this) closeModal();
   });
+
+  // Lightbox logic
+  const lightbox       = document.getElementById('lightbox');
+  const lightboxImg    = document.getElementById('lightbox-img');
+  const lightboxCap    = document.getElementById('lightbox-caption');
+  const lightboxCount  = document.getElementById('lightbox-counter');
+
+  function openLightbox(idx) {
+    if (!currentShots.length) return;
+    currentShotIdx = idx;
+    renderLightbox();
+    lightbox.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function renderLightbox() {
+    const s = currentShots[currentShotIdx];
+    lightboxImg.src = s.src;
+    lightboxImg.alt = s.caption || '';
+    lightboxCap.textContent = s.caption || '';
+    lightboxCount.textContent = `${currentShotIdx + 1} / ${currentShots.length}`;
+  }
+  function closeLightbox() {
+    lightbox.classList.remove('active');
+    if (!modalOverlay.classList.contains('active')) document.body.style.overflow = '';
+  }
+  function navLightbox(delta) {
+    if (!currentShots.length) return;
+    currentShotIdx = (currentShotIdx + delta + currentShots.length) % currentShots.length;
+    renderLightbox();
+  }
+
+  document.getElementById('lightbox-close').addEventListener('click', closeLightbox);
+  document.getElementById('lightbox-prev').addEventListener('click', () => navLightbox(-1));
+  document.getElementById('lightbox-next').addEventListener('click', () => navLightbox(1));
+  lightbox.addEventListener('click', function(e) {
+    if (e.target === this) closeLightbox();
+  });
+
   document.addEventListener('keydown', function(e) {
+    if (lightbox.classList.contains('active')) {
+      if (e.key === 'Escape') closeLightbox();
+      else if (e.key === 'ArrowLeft') navLightbox(-1);
+      else if (e.key === 'ArrowRight') navLightbox(1);
+      return;
+    }
     if (e.key === 'Escape') closeModal();
   });
 
   document.addEventListener('click', function(e) {
+    const thumb = e.target.closest('.shot-thumb');
+    if (thumb) {
+      openLightbox(parseInt(thumb.dataset.shotIdx));
+      return;
+    }
     if (e.target.closest('a') || e.target.closest('button')) return;
     const card = e.target.closest('.card-clickable');
     if (!card) return;
