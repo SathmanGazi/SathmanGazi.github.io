@@ -20,19 +20,19 @@ const PORTFOLIO_DATA = {
   experience: [
     {
       role: "Lead Software Engineer",
-      org: "Lance",
+      org: "Lance Software Solutions",
+      org_url: "https://lancebd.com",
       location: "Dhaka, Bangladesh",
-      period: "Jan 2026 – Present",
+      period: "2026 – Present",
       type: "industry",
-      description: "Building a multi-tenant B2B SaaS claims automation platform for Bangladesh's insurance sector. Designed full system architecture, claims state machine, regulatory compliance integration, and automated test infrastructure from the ground up.",
-      tags: ["FastAPI", "PostgreSQL 15", "Next.js", "TypeScript", "pytest", "GitHub Actions", "AWS"],
+      description: "Leading engineering at a software consultancy delivering custom web and mobile products for businesses in Bangladesh and beyond. Responsible for architecture, delivery pipelines, client scoping, and end-to-end quality.",
+      tags: ["React", "Next.js", "Node.js", "FastAPI", "Python", "PostgreSQL", "Docker", "AWS", "TypeScript"],
       details: [
-        "Built multi-tenant claims automation platform in FastAPI, PostgreSQL 15, and Next.js/TypeScript with full Bengali/English bilingual support and JWT authentication",
-        "Designed claims state machine with surveyor dispatch, urgency classification, and 90-day deadline tracking with append-only audit trail",
-        "Prototyped regulatory compliance integration layer against Bangladesh's national insurance data platform for 82 licensed insurers",
-        "Shipped 23/23 pytest-asyncio critical path tests covering tenant isolation, API integration, urgency band logic, and status transitions",
-        "Set up GitHub Actions CI/CD pipeline with automated test gates enforced on every push",
-        "Conducting stakeholder validation and product research in an underserved B2B insurance software market"
+        "Architecting and shipping custom web apps, mobile products, and enterprise API integrations for clients across Bangladesh",
+        "Defined end-to-end delivery model (Discovery → Design & Build → QA & Launch) with clear milestones and transparent client communication",
+        "Security-minded engineering across all projects: safe auth patterns, data handling, and deployment pipelines from day one",
+        "Conversion-aware UX design integrated into every client engagement — improving trust and user action rates",
+        "Full-stack across the modern web: React/Next.js, Node.js, FastAPI, Python, PostgreSQL, Docker, and AWS"
       ]
     },
     {
@@ -66,22 +66,22 @@ const PORTFOLIO_DATA = {
   ],
 
   projects: [
-    {
-      name: "InsurTech BD Platform",
-      subtitle: "Lance — B2B SaaS Claims Automation",
-      period: "2026 – Present",
-      description: "B2B SaaS platform for insurance claims workflow automation in Bangladesh. Built for licensed insurance companies to enforce IDRA's 90-day claims settlement mandate (Insurance Act 2010) with zero prior digital infrastructure.",
-      tags: ["Python", "FastAPI", "PostgreSQL", "SQLAlchemy", "Alembic", "Redis", "Celery", "AWS S3", "Next.js 14", "TypeScript", "Tailwind CSS", "Docker", "GitHub Actions"],
-      github: "https://github.com/insurtech-bd/platform",
-      github_private: true,
-      details: [
-        "Multi-tenant FastAPI backend with PostgreSQL, Redis/Celery, and AWS S3; every DB table scoped by tenant_id",
-        "Claim status state machine enforcing IDRA's 17-action Claims Management Guideline 2024 with immutable audit trail",
-        "Automated escalation alerts at 60/75/85-day thresholds; XBRL/JSON compliance reporting",
-        "IDRA UMP API integration for policy verification, e-KYC, and SMS notifications",
-        "CI/CD via GitHub Actions with PostgreSQL + Redis test containers; Next.js 14 frontend with Bengali i18n"
-      ]
-    },
+    // {
+    //   name: "InsurTech BD Platform",
+    //   subtitle: "Lance — B2B SaaS Claims Automation",
+    //   period: "2026 – Present",
+    //   description: "B2B SaaS platform for insurance claims workflow automation in Bangladesh. Built for licensed insurance companies to enforce IDRA's 90-day claims settlement mandate (Insurance Act 2010) with zero prior digital infrastructure.",
+    //   tags: ["Python", "FastAPI", "PostgreSQL", "SQLAlchemy", "Alembic", "Redis", "Celery", "AWS S3", "Next.js 14", "TypeScript", "Tailwind CSS", "Docker", "GitHub Actions"],
+    //   github: "https://github.com/insurtech-bd/platform",
+    //   github_private: true,
+    //   details: [
+    //     "Multi-tenant FastAPI backend with PostgreSQL, Redis/Celery, and AWS S3; every DB table scoped by tenant_id",
+    //     "Claim status state machine enforcing IDRA's 17-action Claims Management Guideline 2024 with immutable audit trail",
+    //     "Automated escalation alerts at 60/75/85-day thresholds; XBRL/JSON compliance reporting",
+    //     "IDRA UMP API integration for policy verification, e-KYC, and SMS notifications",
+    //     "CI/CD via GitHub Actions with PostgreSQL + Redis test containers; Next.js 14 frontend with Bengali i18n"
+    //   ]
+    // },
     {
       name: "Lance Wallet",
       subtitle: "Personal Finance App for Bangladesh — Hi-Fi Prototype",
